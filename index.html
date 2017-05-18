@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <fdtitle>Title</fdtitle>
+    <script language="JavaScript" type="text/javascript" src="js/phaser.min.js"></script>
+</head>
+<body>
+ <script language="JavaScript" type = text/javascript>
+
+     //设置画布宽和高
+     var width = window.innerWidth;
+     var height = window.innerHeight;
+     //实例化游戏
+     var game = new Phaser.Game(width, height, Phaser.AUTO, '#game');
+
+     var states = {
+         preload : function(){},
+         created : function(){},
+         play    : function(){},
+         over    : function(){}
+     }
+
+     //把游戏场景加入到游戏中
+     Object.keys(states).map(function(){
+         game.state.add(key, states[key]);
+     })
+
+     //各个场景的代码
+     //preload
+
+
+ </script>
+ <canvas id = "game"></canvas>
+</body>
+</html>
