@@ -2,35 +2,179 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <fdtitle>Title</fdtitle>
-    <script language="JavaScript" type="text/javascript" src="js/phaser.min.js"></script>
+    <script language="JavaScript" type="text/javascript" src="js/phaser.js"></script>
 </head>
 <body>
  <script language="JavaScript" type = text/javascript>
 
      //设置画布宽和高
-     var width = window.innerWidth;
-     var height = window.innerHeight;
+     var width = 1600;
+     var height = 852;
      //实例化游戏
      var game = new Phaser.Game(width, height, Phaser.AUTO, '#game');
 
      var states = {
-         preload : function(){},
-         created : function(){},
-         play    : function(){},
+         preload : function(){
+             this.preload = preloadLogic;
+         },
+         created : function(){
+             this.create = createdLogic;
+         },
+         play    : function(){
+             this.create = playLogic
+         },
          over    : function(){}
      }
 
      //把游戏场景加入到游戏中
-     Object.keys(states).map(function(){
+     Object.keys(states).map(function(key){
          game.state.add(key, states[key]);
      })
 
      //各个场景的代码
      //preload
+     function preloadLogic(){
+         //加载飞机资源
+         //game.load.atlasXML('plane_assets', 'resource/AirplaneResource/ui/shoot.png', 'resource/AirplaneResource/ui/shoot.plist');
 
+         //飞机的静态资源
+         game.load.image('enemy1', 'resource/AirplaneResource/ui/shoot/enemy1.png')
+         game.load.image('enemy2', 'resource/AirplaneResource/ui/shoot/enemy2.png')
+         game.load.image('enemy3', 'resource/AirplaneResource/ui/shoot/enemy3_n1.png')
+         game.load.image('hero1', 'resource/AirplaneResource/ui/shoot/hero1.png')
+         game.load.image('hero2', 'resource/AirplaneResource/ui/shoot/hero2.png')
+
+         //加载背景资源
+         game.load.image('background', 'resource/AirplaneResource/ui/shoot_background/background.png')
+         //加载按钮
+         game.load.image('start_btn', 'resource/AirplaneResource/game_start.png')
+         //加载bgm
+         game.load.audio('bgm', 'resource/frontier.mp3');
+
+
+         console.log("before");
+         // 添加进度文字
+         var progressText = game.add.text(game.world.centerX, game.world.centerY, '0%', {
+             fontSize: '60px',
+             fill: '#ffffff'
+         });
+         console.log("after")
+         progressText.anchor.setTo(0.5, 0.5); // 设置锚点，用于居中
+         // 监听加载完一个文件的事件
+         game.load.onFileComplete.add(function(progress) {
+             progressText.text = progress + '%';
+         });
+
+         //log
+         console.log("load done")
+
+         game.load.onLoadComplete.add(loadFinish);
+
+         var flag = false;
+
+         setTimeout(function(){
+             flag = true;
+         }, 1000);
+
+         function loadFinish(){
+             if(true == flag){
+                 game.state.start('created');
+             }else{
+                 setTimeout(loadFinish, 100);
+             }
+         }
+     }
+
+     function createdLogic(){
+         console.log("create")
+         var bg = game.add.image(0, 0, 'background');
+         bg.width = game.world.width;
+         bg.height = game.world.height;
+
+         //bgm
+         var bgMusic = game.add.audio('bgm');
+         //bgMusic.loopFull();
+         //添加游戏标题
+         var title = game.add.text(game.world.centerX, game.world.centerY*0.8, "Starsun", {
+             fontSize: '70px',
+             fill : '#4F4F4F'
+         });
+         title.anchor.setTo(0.5, 0.5);
+
+         //添加开始按钮
+         var begBtn = game.add.button(game.world.centerX, game.world.centerY*1.2, 'start_btn', function(){
+             game.state.start('play');
+         });
+
+         //添加背景中的飞机
+
+         var enemyGroup = game.add.group();
+
+
+
+
+         begBtn.anchor.setTo(0.5,0.5);
+
+     }
+
+     function playLogic(){
+
+
+
+     }
+
+     function overLogic(){
+
+
+     }
+
+     function createRandomEnemy(gap, speed){
+
+         var enemyList = ['enemy1', 'enemy2', 'enemy3'];
+
+         var xRand = Math.random();
+         var xRota = Math.random();
+         var yRand = Math.random();
+         var yRota = Math.random();
+         var enemyRand1 = Math.ceil(Math.random()*1000) % 3;
+         var enemyRand2 = Math.ceil(Math.random()*1000) % 3;
+
+         var xEne;
+         var yEne;
+
+         var xEneX, xEneY;
+         var yEneX, yEneY;
+
+         //根据随机数确定初始位置并初始化精灵
+         if(yRand < 0.5){xEneX = 0;}
+         else{ xEneX = game.world.centerX*2}
+         xEneY = game.world.centerY * 2 * xRand;
+         xEne = enemyGroup.create(xEneX, xEneY,enemyList[enemyRand1]);
+
+
+         yEneX = game.world.centerX*2*yRand;
+         if(xRand < 0.5){yEneY = 0;}
+         else{ yEneY = game.world.centerY*2}
+         yEne = enemyGroup.create(yEneX, yEneY, enemyList[enemyRand2]);
+
+         function newLocation(){
+             var xxDis = speed * Math.sin(Math.PI * xRota);
+             var xyDis = speed * Math.cos(Math.PI * xRota);
+             var yxDis = speed * Math.sin(Math.PI * yRota);
+             var yyDis = speed * Math.sin(Math.PI * yRota);
+
+             
+
+
+
+         }
+
+     }
+
+     // 启动游戏
+     game.state.start('preload');
 
  </script>
- <canvas id = "game"></canvas>
+ <div id = "game"></div>
 </body>
 </html>
