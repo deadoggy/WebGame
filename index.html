@@ -54,7 +54,7 @@
 
          console.log("before");
          // 添加进度文字
-         var progressText = game.add.text(game.world.centerX, game.world.centerY, '0%', {
+         var progressText = game.add.text(game.world.centerX*0, game.world.centerY, '0%', {
              fontSize: '60px',
              fill: '#ffffff'
          });
@@ -85,6 +85,7 @@
          }
      }
 
+
      function createdLogic(){
          console.log("create")
          var bg = game.add.image(0, 0, 'background');
@@ -95,7 +96,7 @@
          var bgMusic = game.add.audio('bgm');
          //bgMusic.loopFull();
          //添加游戏标题
-         var title = game.add.text(game.world.centerX, game.world.centerY*0.8, "Starsun", {
+         var title = game.add.text(game.world.centerX , game.world.centerY*0.8, "Starsun", {
              fontSize: '70px',
              fill : '#4F4F4F'
          });
@@ -106,14 +107,23 @@
              game.state.start('play');
          });
 
-         //添加背景中的飞机
-
-         var enemyGroup = game.add.group();
-
-
 
 
          begBtn.anchor.setTo(0.5,0.5);
+
+         //添加背景中的飞机
+         var timeflag = false;
+         function addEne(){
+             if(!timeflag){
+                 createRandomEnemyForCreate(10 , 3);
+             }
+
+             //setTimeout(addEne, 6000);
+         }
+
+         addEne();
+
+
 
      }
 
@@ -128,16 +138,23 @@
 
      }
 
-     function createRandomEnemy(gap, speed){
+     function createRandomEnemyForCreate(gap, speed){
+         console.log("create once");
+         createRandomEnemy(gap, speed,[-1,-1]);
+         //createRandomEnemy(enemyGroup, gap, speed,[-1,-1]);
 
-         var enemyList = ['enemy1', 'enemy2', 'enemy3'];
+     }
 
+
+
+
+     function createRandomEnemy(gap, speed, hero){
+
+         var enemyList = ['enemy1', 'enemy2'];
          var xRand = Math.random();
-         var xRota = Math.random();
          var yRand = Math.random();
-         var yRota = Math.random();
-         var enemyRand1 = Math.ceil(Math.random()*1000) % 3;
-         var enemyRand2 = Math.ceil(Math.random()*1000) % 3;
+         var enemyRand1 = Math.ceil(Math.random()*1000) % 2;
+         var enemyRand2 = Math.ceil(Math.random()*1000) % 2;
 
          var xEne;
          var yEne;
@@ -145,27 +162,88 @@
          var xEneX, xEneY;
          var yEneX, yEneY;
 
+         var targetX, targetY;
+
+         //设置方向
+         if(hero[0] == -1 && hero[1] == -1){ //如果没有指定目标, 就随机方向
+
+             targetX = Math.random() * Math.random() * width;
+             targetY = Math.random() * Math.random() * height;
+         }else{
+             //从x轴和y轴出发的点的角度不一样
+             targetX = hero[0];
+             targetY = hero[1];
+
+         }
+
+         console.log("tarX:" + targetX + " tarY:" + targetY);
+
+
          //根据随机数确定初始位置并初始化精灵
-         if(yRand < 0.5){xEneX = 0;}
+         if(yRand < 0.5){xEneX = 20;}
          else{ xEneX = game.world.centerX*2}
          xEneY = game.world.centerY * 2 * xRand;
-         xEne = enemyGroup.create(xEneX, xEneY,enemyList[enemyRand1]);
-
+         xEne = game.add.sprite(xEneX, xEneY,enemyList[enemyRand1]);
+         xEne.anchor.setTo(0.5, 0.5);
 
          yEneX = game.world.centerX*2*yRand;
-         if(xRand < 0.5){yEneY = 0;}
+         if(xRand < 0.5){yEneY = 20;}
          else{ yEneY = game.world.centerY*2}
-         yEne = enemyGroup.create(yEneX, yEneY, enemyList[enemyRand2]);
+         yEne = game.add.sprite(yEneX, yEneY, enemyList[enemyRand2]);
+         xEne.anchor.setTo(0.5,0.5);
 
+         var disX = game.math.distance(targetX, targetY, xEneX, xEneY);
+         console.log("disX:" + disX);
+         var disY = game.math.distance(targetX, targetY, yEneX, yEneY);
+         console.log("disY:" + disY);
+         var xxDis = speed * (targetX-xEneX) / disX;
+         var xyDis = speed * (targetY-xEneY) / disX;
+         var yxDis = speed * (targetX-yEneX) / disY;
+         var yyDis = speed * (targetY-yEneY) / disY;
+         console.log("xorX:"+xEneX + "xorY:" + xEneY);
+         console.log("yorX:"+yEneX + "yorY:" + yEneY);
+
+
+         if((xEneX < 0.5 )){
+             xEne.angle = -game.math.radToDeg(Math.acos((targetY-xEneY) / disX));
+         }else{
+             xEne.angle = game.math.radToDeg(Math.acos((targetY-xEneY) / disX));
+         }
+
+         if((yEneX < 0.5 )){
+             yEne.angle = -game.math.radToDeg(Math.acos((targetY-yEneY) / disY));
+         }else{
+             yEne.angle = game.math.radToDeg(Math.acos((targetY-yEneY) / disY));
+         }
+
+
+
+
+         newLocation();
+
+         //更新位置的函数
          function newLocation(){
-             var xxDis = speed * Math.sin(Math.PI * xRota);
-             var xyDis = speed * Math.cos(Math.PI * xRota);
-             var yxDis = speed * Math.sin(Math.PI * yRota);
-             var yyDis = speed * Math.sin(Math.PI * yRota);
-
-             
 
 
+             //更新坐标
+             xEneX = xEneX + xxDis;
+             xEneY = xEneY + xyDis;
+             yEneY = yEneY + yyDis;
+             yEneX = yEneX + yxDis;
+
+             if(null != xEne){
+                 xEne.reset(xEneX, xEneY);
+             }
+
+             if(null != yEne){
+                 yEne.reset(yEneY, yEneY);
+             }
+
+             if(null != xEne || null != yEne){
+                 setTimeout(function(){
+                     newLocation();
+                 }, gap);
+             }
 
          }
 
