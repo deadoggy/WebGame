@@ -1,0 +1,60 @@
+{"frames": [
+
+{
+	"filename": "hero1.png",
+	"frame": {"x":1,"y":1,"w":101,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":1,"w":101,"h":125},
+	"sourceSize": {"w":102,"h":126}
+},
+{
+	"filename": "hero2.png",
+	"frame": {"x":1,"y":128,"w":101,"h":123},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":1,"w":101,"h":123},
+	"sourceSize": {"w":102,"h":126}
+},
+{
+	"filename": "hero_blowup_n1.png",
+	"frame": {"x":1,"y":253,"w":100,"h":124},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":2,"w":100,"h":124},
+	"sourceSize": {"w":102,"h":126}
+},
+{
+	"filename": "hero_blowup_n2.png",
+	"frame": {"x":1,"y":379,"w":100,"h":124},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":2,"w":100,"h":124},
+	"sourceSize": {"w":102,"h":126}
+},
+{
+	"filename": "hero_blowup_n3.png",
+	"frame": {"x":1,"y":505,"w":100,"h":124},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":1,"y":2,"w":100,"h":124},
+	"sourceSize": {"w":102,"h":126}
+},
+{
+	"filename": "hero_blowup_n4.png",
+	"frame": {"x":1,"y":631,"w":68,"h":79},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":17,"y":19,"w":68,"h":79},
+	"sourceSize": {"w":102,"h":126}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "hero.png",
+	"format": "RGBA8888",
+	"size": {"w":103,"h":711},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:fcab5c41c2410108a4e781e528ba097e:03a7fc12fb66b41caf1687555c9ceed1:eec64b416d3f54b5cb5181ef71d8f236$"
+}
+}
