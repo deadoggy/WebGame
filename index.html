@@ -10,18 +10,28 @@
      //设置画布宽和高
      var width = 1600;
      var height = 852;
+
      var enemySet = [];
      var enemyPosSet = [];
      //是否播放bgm
      var bgm = true;
      var switcher = true;
      var hero;
-     var bulletSet = [];
      var enemySwitcher = true;
      var enemyList = ['enemy1', 'enemy2'];
 
+     var gap = 1000;
+     var speed = 10;
+     var bullets;
+     var enemyGroup;
+     var bulletSpeed = 400;
+
+     var fireRate = 200;
+     var nextFire = 0;
+
      //实例化游戏
      var game = new Phaser.Game(width, height, Phaser.AUTO, '#game');
+
 
      var states = {
          preload : function(){
@@ -38,6 +48,12 @@
          play    : function(){
              this.create = playLogic;
              this.update = updateLogic;
+//             this.render = function(){
+//                 game.debug.body(hero);
+//                 for(var i=0; i<enemySet.length; i++){
+//                     game.debug.body(enemySet[i]);
+//                 }
+//             }
          },
          over    : function(){
              this.create = function () {
@@ -49,7 +65,9 @@
      //把游戏场景加入到游戏中
      Object.keys(states).map(function(key){
          game.state.add(key, states[key]);
-     })
+     });
+
+
 
      //各个场景的代码
      //preload
@@ -62,6 +80,8 @@
          game.load.image('background', 'resource/AirplaneResource/ui/shoot_background/background.png');
          //加载按钮
          game.load.image('start_btn', 'resource/AirplaneResource/game_start.png');
+         //加载子弹
+         game.load.image('bullet_hero', 'resource/AirplaneResource/ui/shoot/bullet2.png');
          //加载bgm
          game.load.audio('bgm', 'resource/frontier.mp3');
          game.load.audio('bullet','resource/AirplaneResource/sound/bullet.mp3');
@@ -70,21 +90,19 @@
          game.load.atlasJSONArray('enemy1','resource/animation/enemy_1.png', 'resource/animation/enemy1.json');
          game.load.atlasJSONArray('enemy2','resource/animation/enemy_2.png', 'resource/animation/enemy2.json');
          game.load.atlasJSONArray('enemy3','resource/animation/enemy_3.png', 'resource/animation/enemy3.json');
-         console.log("before");
+
          // 添加进度文字
          var progressText = game.add.text(game.world.centerX, game.world.centerY, '0%', {
              fontSize: '60px',
              fill: '#ffffff'
          });
-         console.log("after")
+
          progressText.anchor.setTo(0.5, 0.5); // 设置锚点，用于居中
          // 监听加载完一个文件的事件
          game.load.onFileComplete.add(function(progress) {
              progressText.text = progress + '%';
          });
 
-         //log
-         console.log("load done")
 
 
          game.load.onLoadComplete.add(loadFinish);
@@ -104,10 +122,10 @@
          }
      }
 
+     //created场景中的create
      function createdLogic(){
          enemySwitcher = true;
          switcher = true;
-         console.log("create")
          var bg = game.add.image(0, 0, 'background');
          bg.width = game.world.width;
          bg.height = game.world.height;
@@ -115,7 +133,7 @@
          //bgm
          if(bgm == true){
              var bgMusic = game.add.audio('bgm');
-             bgMusic.loopFull();
+             //bgMusic.loopFull();
              bgm = false;
          }
 
@@ -140,21 +158,24 @@
 
          begBtn.anchor.setTo(0.5,0.5);
 
-         //添加背景中的飞机
-         var timeflag = false;
-         function addEne(){
-             if(!switcher){
-                 return;
-             }
-             if(!timeflag){
-                 createRandomEnemyForCreate(1);
-             }
-             setTimeout(addEne, 6000);
-         }
-
-         addEne();
+//         //添加背景中的飞机
+//         var timeflag = false;
+//         function addEne(){
+//             if(!switcher){
+//                 return;
+//             }
+//             if(!timeflag){
+//                 createRandomEnemyForCreate(1);
+//             }
+//             setTimeout(addEne, 6000);
+//         }
+//
+//         addEne();
 
      }
+
+     //play场景中play
+
 
      function playLogic(){
 
@@ -170,7 +191,11 @@
          game.physics.startSystem(Phaser.Physics.ARCADE);
          //主角
          hero = game.add.sprite(game.world.centerX, game.world.centerY, 'hero', 'hero1.png');
+
          hero.anchor.setTo(0.5,0.5);
+
+         //enemy的group
+
 
 
          //加载动画
@@ -180,7 +205,7 @@
 
 
          game.physics.arcade.enable([hero]);
-         hero.body.setSize(80,80,0,0);
+         hero.body.setSize(80,80,10,10);
          hero.body.debug = true;
          hero.body.onCollide = new Phaser.Signal();
          hero.body.onCollide.add(function (){
@@ -189,34 +214,55 @@
 
              setTimeout(function(){
 
-                 hero.kill()
+                 hero.kill();
                  game.state.start('created');
              }, 1000);
 
          });
 
+         bullets = game.add.group();
+         bullets.enableBody = true;
+         bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+         bullets.createMultiple(50, 'bullet_hero');
+         bullets.setAll('checkWorldBounds', true);
+         bullets.setAll('outOfBoundsKill', true);
+
+         enemyGroup = game.add.group();
+         enemyGroup.enableBody = true;
+         enemyGroup.physicsBodyType = Phaser.Physics.ARCADE;
+         enemyGroup.setAll('checkWorldBounds', true);
+         enemyGroup.setAll('outOfBoundsKill', true);
+
          
 
-
+         //加载敌人
          addEneInPlay();
 
          function addEneInPlay() {
              if(enemySwitcher){
-                 createRandomEnemyForPlay(2);
-                 createRandomEnemyForPlay(2);
-                 setTimeout(addEneInPlay, 1000);
+                 createRandomEnemyForPlay(enemyGroup, 200);
+                 createRandomEnemyForPlay(enemyGroup, 200);
+                 setTimeout(addEneInPlay, gap);
              }
 
          }
 
      }
 
+     //play场景中update
      function updateLogic(){
+
+
          if(!enemySwitcher){
              return true;
          }
 
-         var speed = 8;
+         game.physics.arcade.overlap(bullets, enemyGroup, function(bullet, enemy){
+             bullet.kill();
+             enemy.animations.play('damage');
+         }, null, this);
+
          //加入w a s d四个按键控制
          if(game.input.keyboard.isDown(Phaser.KeyCode.W)){
              if(hero.y > 0){
@@ -242,39 +288,36 @@
              }
          }
 
-         //监听鼠标事件
-         game.input.addMoveCallback(function(pointer, x, y, isTap){
-             var distanceBetweenPt = game.math.distance(hero.x, hero.y, x, y);
 
-             //计算旋转角度
-             var rotate = 180 - game.math.radToDeg(Math.acos((y - hero.y)/distanceBetweenPt));
-             if(hero.x > x){
-                 rotate = - rotate;
-             }
-             hero.angle = rotate;
-         });
+         //hero的头部指向鼠标
+         hero.rotation = Math.PI/2 +  game.physics.arcade.angleToPointer(hero);
 
-        // 更新位置 以及 检查碰撞
-        for(var i=0; i<enemySet.length; i++){
-            refresh(enemySet[i], enemyPosSet[i][0], enemyPosSet[i][1])
-            game.physics.arcade.collide(hero, enemySet[i]);
-        }
-     }
+         //监听鼠标按下的事件, 发射子弹
+         if (game.input.activePointer.isDown){
+             if (game.time.now > nextFire && bullets.countDead() > 0)
+             {
+                 nextFire = game.time.now + fireRate;
 
-     function refresh(enemy, xStep, yStep){
-         var currentX = enemy.x + xStep;
-         var currentY = enemy.y + yStep;
-         if((currentX >=0 && currentX <= width) && (currentY >= 0 && currentY<=height) && enemySwitcher ){
-             //console.log("refresh");
-             enemy.x = currentX;
-             enemy.y = currentY;
-         }else{
-             //console.log("current:(" + currentX + ":" + currentY + ")");
-             remove(enemy);
-             if(enemySwitcher){
-                 enemy.kill();
+                 var bullet = bullets.getFirstDead();
+
+                 bullet.reset(hero.x - 8, hero.y - 8);
+
+                 game.physics.arcade.moveToPointer(bullet, bulletSpeed);
              }
          }
+
+
+
+
+     }
+
+     //刷新飞机的位置
+     function refresh(enemy, xStep, yStep, type){
+         var currentX = enemy.x + xStep;
+         var currentY = enemy.y + yStep;
+         enemy.x = currentX;
+         enemy.y = currentY;
+
      }
 
      function overLogic(){
@@ -283,13 +326,12 @@
      }
 
      //开始画面中的飞机
-     function createRandomEnemyForCreate(speed){
-         console.log("create once");
-         createRandomEnemy(speed,[-1,-1], "enemy1");
+     function createRandomEnemyForCreate(enemyGroup, speed){
+         createRandomEnemy(enemyGroup, speed,[-1,-1], "enemy1");
      }
 
      //play中的飞机
-     function createRandomEnemyForPlay(speed){
+     function createRandomEnemyForPlay(enemyGroup, speed){
 
          var eneRand = Math.random() * 100;
          var enemyType;
@@ -300,11 +342,11 @@
          }else{
              enemyType = enemyList[1];
          }
-         createRandomEnemy(speed,[hero.x, hero.y], enemyType);
+         createRandomEnemy(enemyGroup, speed,[hero.x, hero.y], enemyType);
      }
 
      //随机产生飞机的函数
-     function createRandomEnemy(speed, heroPos, enemyType){
+     function createRandomEnemy(enemyGroup, speed, heroPos, enemyType){
 
         var randomPosLen = Math.random() * 2 * (width + height);
         var originX, originY;
@@ -341,7 +383,6 @@
         var yStep = (targetY - originY) * speed / distance;
 
 
-        console.log(enemyType);
 
         var begFrame;
         if('enemy3' == enemyType){
@@ -351,15 +392,17 @@
         }
 
         //初始
-        var enemy = game.add.sprite(originX,originY, enemyType, begFrame);
+        var enemy = enemyGroup.create(originX,originY, enemyType, begFrame);
+        enemy.anchor.setTo(0.5,0.5);
+         game.physics.arcade.moveToObject(enemy, hero, speed);
         enemySet.push(enemy);
-         enemyPosSet.push([xStep, yStep]);
+        enemyPosSet.push([xStep, yStep]);
 
-         game.physics.arcade.enable([enemy]);
+
          if('enemy1' == enemyType){
-             enemy.body.setSize(40, 30, 0 , 0);
+             enemy.body.setSize(40, 30, 10 , 10);
          }else{
-             enemy.body.setSize(50, 70, 0 , 0);
+             enemy.body.setSize(50, 70, 10 , 15);
          }
 
 
@@ -374,12 +417,17 @@
             endFrame = 4;
         }
 
-        enemy.animations.add('damage',Phaser.Animation.generateFrameNames(enemyType+"_down",1,endFrame, '.png',1), 60, true, false);
+        var dam_anim = enemy.animations.add('damage',Phaser.Animation.generateFrameNames(enemyType+"_down",1,endFrame, '.png',1), 15, false, false);
         if('enemy3' == enemyType){
             enemy.animations.play('normal');
         }
+        
+        dam_anim.onComplete.add(function (sprite, animation) {
+            sprite.kill();
+        });
 
-        //旋转角度
+
+         //旋转角度
         var rotate = game.math.radToDeg(Math.acos((targetY-originY)/distance));
 
         if(originX < targetX){
@@ -389,14 +437,22 @@
         enemy.angle = rotate;
      }
 
-     function remove(enemy){
-         for(var i=0; i<enemySet.length; i++){
-             if(enemy == enemySet[i]){
-                 enemySet.splice(i,1);
-                 enemyPosSet.splice(i,1);
+     //移除敌人
+     function remove(enemy, type){
+
+         var targetSet = [], targetPosSet = [];
+         switch(type){
+             case 0 : targetSet = enemySet; targetPosSet = enemyPosSet; break;
+         }
+
+         for(var i=0; i<targetSet.length; i++){
+             if(enemy == targetSet[i]){
+                 targetSet.splice(i,1);
+                 targetPosSet.splice(i,1);
                  return true;
              }
          }
+         enemy.kill();
          return false;
      }
 
