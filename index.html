@@ -17,6 +17,7 @@
      var bgm = true;
      var switcher = true;
      var hero;
+     var heroGroup;
      var enemySwitcher = true;
      var enemyList = ['enemy1', 'enemy2'];
 
@@ -189,8 +190,12 @@
 
          //物理引擎
          game.physics.startSystem(Phaser.Physics.ARCADE);
+
          //主角
-         hero = game.add.sprite(game.world.centerX, game.world.centerY, 'hero', 'hero1.png');
+         heroGroup = game.add.group();
+         heroGroup.enableBody = true;
+         heroGroup.physicsBodyType = Phaser.Physics.ARCADE;
+         hero = heroGroup.create(game.world.centerX, game.world.centerY, 'hero', 'hero1.png');
 
          hero.anchor.setTo(0.5,0.5);
 
@@ -200,25 +205,18 @@
 
          //加载动画
          hero.animations.add('hero_normal',Phaser.Animation.generateFrameNames('hero', 1, 2, '.png', 1), 20, true, false);
-         hero.animations.add('hero_down', Phaser.Animation.generateFrameNames('hero_blowup_n', 1, 4, '.png', 1), 20, false, false);
+         var dam_anim = hero.animations.add('hero_down', Phaser.Animation.generateFrameNames('hero_blowup_n', 1, 4, '.png', 1), 5, false, false);
          hero.animations.play('hero_normal');
 
+         dam_anim.onComplete.add(function (sprite, animation) {
+             sprite.kill();
+             game.state.start('created');
+         });
 
          game.physics.arcade.enable([hero]);
          hero.body.setSize(80,80,10,10);
          hero.body.debug = true;
          hero.body.onCollide = new Phaser.Signal();
-         hero.body.onCollide.add(function (){
-             enemySwitcher = false;
-             hero.animations.play('hero_down');
-
-             setTimeout(function(){
-
-                 hero.kill();
-                 game.state.start('created');
-             }, 1000);
-
-         });
 
          bullets = game.add.group();
          bullets.enableBody = true;
@@ -262,6 +260,11 @@
              bullet.kill();
              enemy.animations.play('damage');
          }, null, this);
+
+         game.physics.arcade.overlap(heroGroup, enemyGroup,function (hero, enemy) {
+             enemySwitcher = false;
+             hero.animations.play('hero_down');
+         },null, this);
 
          //加入w a s d四个按键控制
          if(game.input.keyboard.isDown(Phaser.KeyCode.W)){
